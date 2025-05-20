@@ -1,4 +1,7 @@
 canvas
 {
     background-color: black;
+    margin: 0 auto;
+    border: 2px solid black;
+    display: block;
 }
