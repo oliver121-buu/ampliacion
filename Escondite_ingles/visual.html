@@ -10,9 +10,257 @@
         <link rel="stylesheet" href="Cosas.css">
     </head>
     <body>
-        <canvas></canvas>
-        <h1>
-            El escondite ingles
-        </h1>
+        <canvas id="lienzo" width="600" height="800" style="display: block; margin: 0 auto; border: 1px solid black;"></canvas>
+        <table>
+            <tr>
+                <td>
+                    <h2>
+                        Jugador 1 
+                        <span id="corazon1">
+                            ♥
+                        </span>
+                    </h2>
+                    <button onclick="definirAccion(0, 'andar')" id="btnAccion0Andar">
+                        Andar
+                    </button>
+                    <br>
+                    <button onclick="definirAccion(0, 'parar')" id="btnAccion0Parar">
+                        Parar
+                    </button>
+                </td>
+                <td>
+                    <h2>
+                        Jugador 2
+                        <span id="corazon2">
+                            ♥
+                        </span>
+                    </h2>
+                    <button onclick="definirAccion(1, 'andar')" id="btnAccion1Andar">
+                        Andar
+                    </button>
+                    <br>
+                    <button onclick="definirAccion(1, 'parar')" id="btnAccion1Parar">
+                        Parar
+                    </button>
+                </td>
+                <td>
+                    <h2>Jugador 3 <span id="corazon3">♥</span></h2>
+                    <button onclick="definirAccion(2, 'andar')" id="btnAccion2Andar">
+                        Andar
+                    </button>
+                    <br>
+                    <button onclick="definirAccion(2, 'parar')" id="btnAccion2Parar">
+                        Parar
+                    </button>
+                </td>
+            </tr>
+        </table>
+        <div style="text-align:center;">
+            <button id="botonFinTurno" onclick="terminarTurno()" disabled>
+                Terminar ronda y sacar dado
+            </button>
+            <div id="resultadoDados"></div>
+            <div id="mensajeGanador"></div>
+        </div>
+        <script>
+            const lienzo = document.getElementById('lienzo');
+            const ctx = lienzo.getContext('2d');
+            const jugadores = 
+            [
+                { x: 100, y: 750, corazon: true, posicion: 0, accion: null, ultimoDadoValor: null, efectoCorazon: null },
+                { x: 280, y: 750, corazon: true, posicion: 0, accion: null, ultimoDadoValor: null, efectoCorazon: null },
+                { x: 460, y: 750, corazon: true, posicion: 0, accion: null, ultimoDadoValor: null, efectoCorazon: null }
+            ];
+            let bolsaDados = ['negro1', 'negro2', 'negro3', 'rojo'];
+            let dadosUsados = [];
+            let dadosAcumulados = [];
+            let dadoActual = sacarDado();
+            const carasPorTipo = 
+            {
+                negro1: [1,1,1,1,2,2],
+                negro2: [1,1,1,1,0,0],
+                negro3: [1,1,0,0,0,0],
+                rojo:   [1,1,1,1,1,0]
+            };
+            const maxPosicion = 10;
+            function sacarDado() 
+            {
+                if (bolsaDados.length === 0) 
+                {
+                    bolsaDados = ['negro1', 'negro2', 'negro3', 'rojo'];
+                }
+                const indice = Math.floor(Math.random() * bolsaDados.length);
+                return bolsaDados.splice(indice, 1)[0];
+            }
+            function definirAccion(indice, accion) 
+            {
+                if (document.getElementById('mensajeGanador').textContent !== '') return;
+                jugadores[indice].accion = accion;
+                if (jugadores.every(j => j.accion !== null)) 
+                {
+                    document.getElementById('botonFinTurno').disabled = false;
+                }
+            }
+            function lanzarDado(tipo) 
+            {
+                const caras = carasPorTipo[tipo];
+                const indice = Math.floor(Math.random() * caras.length);
+                return { valor: caras[indice], tipo };
+            }
+            function terminarTurno() 
+            {
+                document.getElementById('botonFinTurno').disabled = true;
+                const divResultado = document.getElementById('resultadoDados');
+                divResultado.innerHTML = `<strong>Dado extraído:</strong> ${dadoActual}`;
+                if (dadoActual.startsWith('negro')) 
+                {
+                    dadosAcumulados.push(dadoActual);
+                }
+                setTimeout(() => 
+                {
+                    divResultado.innerHTML += `<br><strong>Tiradas:</strong><br>`;
+                    jugadores.forEach((jugador, i) => 
+                    {
+                        divResultado.innerHTML += `Jugador ${i + 1} (${jugador.accion}) `;
+
+                        if (jugador.accion === 'andar') 
+                        {
+                            if (dadoActual.startsWith('negro')) 
+                            {
+                                let dadosANtirar = [...dadosAcumulados, dadoActual];
+                                let total = 0;
+                                dadosANtirar.forEach(d => 
+                                {
+                                    const resultado = lanzarDado(d).valor;
+                                    total += resultado;
+                                });
+                                jugador.posicion += total;
+                                jugador.ultimoDadoValor = total;
+                                divResultado.innerHTML += `avanzó ${total} posiciones.<br>`;
+                            } 
+                            else if (dadoActual === 'rojo') 
+                            {
+                                if (jugador.corazon) 
+                                {
+                                    jugador.corazon = false;
+                                    jugador.efectoCorazon = 'perdido';
+                                    jugador.ultimoDadoValor = null;
+                                    divResultado.innerHTML += `perdió el corazón.<br>`;
+                                } 
+                                else 
+                                {
+                                    let dadosANtirar = [...dadosAcumulados, dadoActual];
+                                    let total = 0;
+                                    dadosANtirar.forEach(d => 
+                                    {
+                                        total += lanzarDado(d).valor;
+                                    });
+                                    jugador.posicion = Math.max(0, jugador.posicion - total);
+                                    jugador.ultimoDadoValor = -total;
+                                    divResultado.innerHTML += `retrocedió ${total} posiciones.<br>`;
+                                }
+                            }
+                        } 
+                        else if (jugador.accion === 'parar') 
+                        {
+                            if (dadoActual === 'rojo' && !jugador.corazon) 
+                            {
+                                jugador.corazon = true;
+                                jugador.efectoCorazon = 'ganado';
+                                jugador.ultimoDadoValor = null;
+                                divResultado.innerHTML += `recuperó el corazón.<br>`;
+                            } 
+                            else{
+                                jugador.ultimoDadoValor = null;
+                                divResultado.innerHTML += `se quedó quieto.<br>`;
+                            }
+                        }
+                        jugador.accion = null;
+                    });
+                    if (dadoActual === 'rojo' || dadosAcumulados.length >= 3) 
+                    {
+                        dadosUsados.push(...dadosAcumulados);
+                        dadosAcumulados = [];
+                        bolsaDados = ['negro1', 'negro2', 'negro3', 'rojo'];
+                    }
+                    dadoActual = sacarDado();
+                    actualizarCorazones();
+                    dibujarJugadores();
+                    verificarGanador();
+                }, 500);
+            }
+            function actualizarCorazones() 
+            {
+                jugadores.forEach((j, i) => 
+                {
+                    const spanCorazon = document.getElementById('corazon' + (i + 1));
+                    spanCorazon.textContent = j.corazon ? '♥' : '♡';
+                    if (j.efectoCorazon === 'ganado') 
+                    {
+                        spanCorazon.style.color = 'green';
+                        setTimeout(() => 
+                        {
+                            spanCorazon.style.color = '';
+                            j.efectoCorazon = null;
+                        }, 1000);
+                    } else if (j.efectoCorazon === 'perdido') 
+                    {
+                        spanCorazon.style.color = 'red';
+                        setTimeout(() => 
+                        {
+                            spanCorazon.style.color = '';
+                            j.efectoCorazon = null;
+                        }, 1000);
+                    }
+                });
+            }
+            function dibujarJugadores() 
+            {
+                ctx.clearRect(0, 0, lienzo.width, lienzo.height);
+                for (let i = 0; i <= maxPosicion; i++) 
+                {
+                    ctx.strokeStyle = 'black';
+                    ctx.beginPath();
+                    ctx.moveTo(50, 750 - i * 70);
+                    ctx.lineTo(550, 750 - i * 70);
+                    ctx.stroke();
+                }
+                jugadores.forEach((j, i) => 
+                {
+                    const y = 750 - j.posicion * 70;
+                    ctx.fillStyle = ['red', 'green', 'blue'][i];
+                    ctx.fillRect(j.x, y, 30, 30);
+                    ctx.fillStyle = j.corazon ? 'red' : 'gray';
+                    ctx.font = '20px Arial';
+                    ctx.fillText('♥', j.x + 5, y + 22);
+                    if (j.ultimoDadoValor !== null) 
+                    {
+                        ctx.fillStyle = j.ultimoDadoValor >= 0 ? 'green' : 'red';
+                        ctx.font = '18px Arial';
+                        ctx.fillText((j.ultimoDadoValor >= 0 ? '+' : '') + j.ultimoDadoValor, j.x + 40, y + 22);
+                    }
+                });
+            }
+            function verificarGanador() 
+            {
+                const ganadores = jugadores
+                    .map((j, i) => (j.posicion >= maxPosicion ? `Jugador ${i + 1}` : null))
+                    .filter(x => x !== null);
+
+                if (ganadores.length > 0) 
+                {
+                    const mensaje = `¡Ganador${ganadores.length > 1 ? 'es' : ''}: ${ganadores.join(', ')}! 🎉`;
+                    document.getElementById('mensajeGanador').textContent = mensaje;
+                    jugadores.forEach((_, i) => 
+                    {
+                        document.getElementById(`btnAccion${i}Andar`).disabled = true;
+                        document.getElementById(`btnAccion${i}Parar`).disabled = true;
+                    });
+                    document.getElementById('botonFinTurno').disabled = true;
+                }
+            }
+            dibujarJugadores();
+            actualizarCorazones();
+        </script>
     </body>
 </html>
