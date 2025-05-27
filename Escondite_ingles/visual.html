@@ -3,10 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>
-            Escondite_ingles
-        </title>
-        <script src="codigo.js"></script>
+        <title>Escondite_ingles</title>
         <link rel="stylesheet" href="Cosas.css">
     </head>
     <body>
@@ -30,7 +27,7 @@
                 </td>
                 <td>
                     <h2>
-                        Jugador 2
+                        Jugador 2 
                         <span id="corazon2">
                             ♥
                         </span>
@@ -39,12 +36,15 @@
                         Andar
                     </button>
                     <br>
-                    <button onclick="definirAccion(1, 'parar')" id="btnAccion1Parar">
-                        Parar
-                    </button>
+                    <button onclick="definirAccion(1, 'parar')" id="btnAccion1Parar">Parar</button>
                 </td>
                 <td>
-                    <h2>Jugador 3 <span id="corazon3">♥</span></h2>
+                    <h2>
+                        Jugador 3 
+                        <span id="corazon3">
+                            ♥
+                        </span>
+                    </h2>
                     <button onclick="definirAccion(2, 'andar')" id="btnAccion2Andar">
                         Andar
                     </button>
@@ -65,8 +65,7 @@
         <script>
             const lienzo = document.getElementById('lienzo');
             const ctx = lienzo.getContext('2d');
-            const jugadores = 
-            [
+            const jugadores = [
                 { x: 100, y: 750, corazon: true, posicion: 0, accion: null, ultimoDadoValor: null, efectoCorazon: null },
                 { x: 280, y: 750, corazon: true, posicion: 0, accion: null, ultimoDadoValor: null, efectoCorazon: null },
                 { x: 460, y: 750, corazon: true, posicion: 0, accion: null, ultimoDadoValor: null, efectoCorazon: null }
@@ -122,7 +121,6 @@
                     jugadores.forEach((jugador, i) => 
                     {
                         divResultado.innerHTML += `Jugador ${i + 1} (${jugador.accion}) `;
-
                         if (jugador.accion === 'andar') 
                         {
                             if (dadoActual.startsWith('negro')) 
@@ -170,7 +168,8 @@
                                 jugador.ultimoDadoValor = null;
                                 divResultado.innerHTML += `recuperó el corazón.<br>`;
                             } 
-                            else{
+                            else 
+                            {
                                 jugador.ultimoDadoValor = null;
                                 divResultado.innerHTML += `se quedó quieto.<br>`;
                             }
@@ -244,9 +243,8 @@
             function verificarGanador() 
             {
                 const ganadores = jugadores
-                    .map((j, i) => (j.posicion >= maxPosicion ? `Jugador ${i + 1}` : null))
-                    .filter(x => x !== null);
-
+                .map((j, i) => (j.posicion >= maxPosicion ? `Jugador ${i + 1}` : null))
+                .filter(x => x !== null);
                 if (ganadores.length > 0) 
                 {
                     const mensaje = `¡Ganador${ganadores.length > 1 ? 'es' : ''}: ${ganadores.join(', ')}! 🎉`;
